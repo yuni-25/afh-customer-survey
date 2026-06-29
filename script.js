@@ -1,50 +1,63 @@
-// Load Survey JSON
-fetch("survey.json")
-  .then((response) => {
-    if (!response.ok) {
-      throw new Error("Tidak dapat membaca survey.json");
-    }
-    return response.json();
-  })
-  .then((json) => {
+(async function () {
 
-    // Buat Survey
-    const survey = new Survey.Model(json);
+    try {
 
-    // Submit ke Google Spreadsheet
-    survey.onComplete.add(async function (sender) {
+        // Load JSON Survey
+        const response = await fetch("./survey.json");
 
-      try {
+        if (!response.ok) {
+            throw new Error("survey.json tidak ditemukan");
+        }
 
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST",
-          redirect: "follow",
-          body: JSON.stringify(sender.data)
+        const json = await response.json();
+
+        // Membuat survey
+        const survey = new Survey.Model(json);
+
+        // Gunakan Theme DefaultV2
+        survey.applyTheme(Survey.StylesManager.ThemeColors.Default);
+
+        // Submit ke Google Sheet
+        survey.onComplete.add(async function (sender) {
+
+            try {
+
+                await fetch(GOOGLE_SCRIPT_URL, {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify(sender.data)
+
+                });
+
+                console.log("Survey berhasil dikirim.");
+
+            } catch (err) {
+
+                console.error(err);
+
+                alert("Survey selesai tetapi gagal mengirim data.");
+
+            }
+
         });
 
-        console.log("Survey berhasil dikirim.");
+        // Render Survey
+        survey.render(document.getElementById("surveyContainer"));
 
-      } catch (error) {
+    }
 
-        console.error(error);
+    catch (err) {
 
-        alert(
-          "Survey sudah selesai, namun terjadi kendala saat mengirim data. Silakan hubungi administrator."
-        );
+        console.error(err);
 
-      }
+        document.getElementById("surveyContainer").innerHTML =
+            "<h2>Gagal memuat survey.</h2>";
 
-    });
+    }
 
-    // Render Survey
-    survey.render(document.getElementById("surveyContainer"));
-
-  })
-  .catch((error) => {
-
-    console.error(error);
-
-    document.getElementById("surveyContainer").innerHTML =
-      "<h2>Gagal memuat survey.</h2>";
-
-  });
+})();
