@@ -1,11 +1,10 @@
+html,
 body{
     margin:0;
+    padding:0;
     background:#f5f6fa;
-    font-family:Arial, Helvetica, sans-serif;
 }
 
 #surveyContainer{
-    max-width:900px;
-    margin:auto;
-    padding:30px;
+    width:100%;
 }
